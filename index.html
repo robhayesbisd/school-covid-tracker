@@ -28,8 +28,8 @@
                 max-height: 100px;
                 animation:spin 1s linear infinite;
                 transform: rotate(45deg);
-                /* #003595 */
-                filter: invert(15%) sepia(69%) saturate(3834%) hue-rotate(215deg) brightness(84%) contrast(103%);
+                /* #063d63 */
+                filter: invert(17%) sepia(90%) saturate(1022%) hue-rotate(175deg) brightness(91%) contrast(96%);
             }
             @keyframes spin {
                 100% {
@@ -43,13 +43,19 @@
                 opacity: 0;
             }
             #chart {
-                margin-bottom: 30px;
+                margin-top: 50px;
             }
             .grid {
                 display: grid;
                 grid-template-columns: repeat(2, 1fr);
                 grid-gap: 20px;
                 font-family: Arial, Helvetica, sans-serif;
+            }
+            .grid .title {
+                grid-column: -1/1;
+                text-align: center;
+                font-size: 3em;
+                color: #555;
             }
             .grid div {
                 text-align: center;
@@ -65,16 +71,16 @@
             }
             /* colorize SVGS. Get filter from: https://codepen.io/sosuke/pen/Pjoqqp */
             .total img, .total .number {
-                /* #94d600 */
-                filter: invert(78%) sepia(50%) saturate(3868%) hue-rotate(33deg) brightness(102%) contrast(101%);
+                /* #063d63 */
+                filter: invert(17%) sepia(90%) saturate(1022%) hue-rotate(175deg) brightness(91%) contrast(96%);
             }
-            .exposed img, .exposed .number {
-                /* #003595 */
-                filter: invert(15%) sepia(69%) saturate(3834%) hue-rotate(215deg) brightness(84%) contrast(103%);
+            .positive.staff img, .positive.staff .number {
+                /* #5fa400 */
+                filter: invert(55%) sepia(41%) saturate(1682%) hue-rotate(48deg) brightness(88%) contrast(101%);
             }
-            .positive img, .positive .number {
-                /* #cf102d */
-                filter: invert(16%) sepia(50%) saturate(7498%) hue-rotate(344deg) brightness(82%) contrast(99%);
+            .positive.student img, .positive.student .number {
+                /* #c9ff4f */
+                filter: invert(99%) sepia(56%) saturate(1866%) hue-rotate(22deg) brightness(105%) contrast(100%);
             }
             #asof {
                 font-family: Arial, Helvetica, sans-serif;
@@ -90,9 +96,8 @@
             <img src="https://cdn.jsdelivr.net/npm/@mdi/svg@5.5.55/svg/loading.svg">
         </div>
         <div id="wrapper">
-            <canvas id="chart"></canvas>
-
             <div class="grid">
+                <h1 class="title">COVID-19 Tracking</h1>
                 <div class="total">
                     <img src="https://cdn.jsdelivr.net/npm/@mdi/svg@5.5.55/svg/human-greeting.svg">
                     <div class="number" ref="Total Students"></div>
@@ -103,27 +108,18 @@
                     <div class="number" ref="Total Staff"></div>
                     <div>Total Staff</div>
                 </div>
-                <div class="exposed">
-                    <img src="https://cdn.jsdelivr.net/npm/@mdi/svg@5.5.55/svg/face-mask-outline.svg">
-                    <div class="number" ref="Exposed/Symptomatic Students"></div>
-                    <div>Current Exposed/Symptomatic Students</div>
-                </div>
-                <div class="exposed">
-                    <img src="https://cdn.jsdelivr.net/npm/@mdi/svg@5.5.55/svg/face-mask-outline.svg">
-                    <div class="number" ref="Exposed/Symptomatic Staff"></div>
-                    <div>Current Exposed/Symptomatic Staff</div>
-                </div>
-                <div class="positive">
+                <div class="positive student">
                     <img src="https://cdn.jsdelivr.net/npm/@mdi/svg@5.5.55/svg/virus-outline.svg">
                     <div class="number" ref="Positive Students"></div>
                     <div>Current Students with Positive Cases</div>
                 </div>
-                <div class="positive">
+                <div class="positive staff">
                     <img src="https://cdn.jsdelivr.net/npm/@mdi/svg@5.5.55/svg/virus-outline.svg">
                     <div class="number" ref="Positive Staff"></div>
                     <div>Current Staff with Positive Cases</div>
                 </div>
             </div>
+            <canvas id="chart"></canvas>
             <div id="asof">Last Updated: <span ref="As of Date"></span></div>
         </div>
         <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
@@ -147,6 +143,7 @@
                 const gsheet_id = params.get("id")
 
                 document.title = `${district} COVID-19 Tracking`
+                document.querySelector(".title").innerText = `${district} COVID-19 Tracking`
 
                 const data_url = `https://docs.google.com/spreadsheets/d/${gsheet_id}/gviz/tq?tqx=out:csv&sheet=Data`
                 const agg_url = `https://docs.google.com/spreadsheets/d/${gsheet_id}/gviz/tq?tqx=out:csv&sheet=Aggregation`
@@ -157,7 +154,9 @@
                     document.querySelector(`[ref="${entry[0]}"]`).innerHTML = entry[1]
                 }
 
-                // make chart have minimum height of 20
+                const height_interval = 50;
+
+                // make chart have minimum height of 50
                 let max_height = 0
                 for (const campus of chart_data) {
                     let m = 0
@@ -176,34 +175,26 @@
                     }
                 }
 
-                max_height = Math.ceil(Math.max(20, max_height) / 20) * 20;
+                max_height = Math.ceil(Math.max(height_interval, max_height) / height_interval) * height_interval;
 
                 const ctx = document.getElementById("chart").getContext("2d")
                 var chart = new Chart(ctx, {
-                    type: "bar",
+                    type: "horizontalBar",
                     options: {
-                        title: {
-                            display: true,
-                            fontSize: 48,
-                            text: `${district} COVID-19 Tracking`,
-                        },
                         tooltips: {
                             mode: "index",
                             intersect: false,
-                            callbacks: {
-                                title(items, data) {
-                                    return (items[0].xLabel || []).join(" ")
-                                },
-                            },
                         },
                         responsive: true,
+                        aspectRatio: 1.2,
                         scales: {
                             xAxes: [{
-                            }],
-                            yAxes: [{
                                 ticks: {
                                     max: max_height,
+                                    stepSize: 5,
                                 },
+                            }],
+                            yAxes: [{
                             }],
                         },
                         legend: {
@@ -213,27 +204,17 @@
                         },
                     },
                     data: {
-                        labels: chart_data.map(val => val.Campus).map(val => val.split(" ")),
+                        labels: chart_data.map(val => val.Campus),
                         datasets: [
                             {
-                                label: "Exposed/Symptomatic Students",
-                                data: chart_data.map(val => val["Exposed/Symptomatic Students"]),
-                                backgroundColor: "#003595",
-                            },
-                            {
-                                label: "Exposed/Symptomatic Staff",
-                                data: chart_data.map(val => val["Exposed/Symptomatic Staff"]),
-                                backgroundColor: "#838bfa",
+                                label: "Positive Staff",
+                                data: chart_data.map(val => val["Positive Staff"]),
+                                backgroundColor: "#c9ff4f",
                             },
                             {
                                 label: "Positive Students",
                                 data: chart_data.map(val => val["Positive Students"]),
-                                backgroundColor: "#cf102d",
-                            },
-                            {
-                                label: "Positive Staff",
-                                data: chart_data.map(val => val["Positive Staff"]),
-                                backgroundColor: "#ff8983",
+                                backgroundColor: "#5fa400",
                             },
                         ],
                     },
