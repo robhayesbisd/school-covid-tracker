@@ -122,6 +122,8 @@
             <canvas id="chart"></canvas>
             <div id="asof">Last Updated: <span ref="As of Date"></span></div>
         </div>
+        <div>
+            <h6 class="title">Hover over the bars on the graph to see specific numbers.</h6></div>
         <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
         <script type="text/javascript">
             function parse(csv) {
@@ -214,7 +216,7 @@
                             {
                                 label: "Positive Students",
                                 data: chart_data.map(val => val["Positive Students"]),
-                                backgroundColor: "#397299",
+                                backgroundColor: "#3a75a1",
                             },
                         ],
                     },
